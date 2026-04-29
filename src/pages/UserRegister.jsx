@@ -908,4 +908,5 @@ const RegistrationForm = ({ onCancel }) => {
   );
 };
 
+
 export default RegistrationForm;
