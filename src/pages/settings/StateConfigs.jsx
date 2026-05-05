@@ -121,8 +121,8 @@ const StateConfigs = () => {
     attache_sound: '',
     url: '',
     color: '#ffffff',
-    enable_sound: true,
-    enable_blink: true,
+    sound: true,
+    blink: true,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -296,8 +296,8 @@ const StateConfigs = () => {
       // convert checkbox booleans to 1/0 for backend
       const payload = {
         ...formData,
-        enable_sound: formData.enable_sound ? 1 : 0,
-        enable_blink: formData.enable_blink ? 1 : 0,
+        sound: formData.sound ? 1 : 0,
+        blink: formData.blink ? 1 : 0,
       };
 
       if (isEditing && currentConfig) {
@@ -335,8 +335,8 @@ const StateConfigs = () => {
         url: config.url || '',
         color: config.color || '#ffffff',
         // booleans from numeric values
-        enable_sound: config.enable_sound !== 0,
-        enable_blink: config.enable_blink !== 0,
+        sound: Number(config.sound) === 1,
+        blink: Number(config.blink) === 1,
       });
       setIsEditing(true);
       setError(null);
@@ -398,8 +398,8 @@ const StateConfigs = () => {
       url: '',
       color: '#ffffff',
       // reset toggles to default checked
-      enable_sound: true,
-      enable_blink: true,
+      sound: true,
+      blink: true,
     });
     setIsEditing(false);
     setCurrentConfig(null);
@@ -424,8 +424,8 @@ const StateConfigs = () => {
       Name: config.name,
       'Attached Sound': config.attache_sound || 'N/A',
       URL: config.url || 'N/A',
-      'Enable Sound': config.enable_sound ? 1 : 0,
-      'Enable Blink': config.enable_blink ? 1 : 0,
+      'Enable Sound': config.sound ? 1 : 0,
+      'Enable Blink': config.blink ? 1 : 0,
       Color: config.color || '#ffffff',
     }));
 
@@ -819,8 +819,8 @@ const StateConfigs = () => {
                   <input
                     id="enable_sound"
                     type="checkbox"
-                    name="enable_sound"
-                    checked={formData.enable_sound}
+                    name="sound"
+                    checked={formData.sound}
                     onChange={handleInputChange}
                   />
                   <label htmlFor="enable_sound" style={{ fontSize: '14px', color: '#374151' }}>
@@ -833,8 +833,8 @@ const StateConfigs = () => {
                   <input
                     id="enable_blink"
                     type="checkbox"
-                    name="enable_blink"
-                    checked={formData.enable_blink}
+                    name="blink"
+                    checked={formData.blink}
                     onChange={handleInputChange}
                   />
                   <label htmlFor="enable_blink" style={{ fontSize: '14px', color: '#374151' }}>
