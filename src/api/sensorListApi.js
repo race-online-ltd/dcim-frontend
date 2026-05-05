@@ -92,3 +92,18 @@ export const fetchSensorTypeLists = async () => {
       throw error;
     }
   };
+
+
+  export const fetchSensorLocations = async (data_center_id, sensor_type_list_id) => {
+    try {
+      const response = await apiClient.get('/sensor-locations', {
+        params: {
+          data_center_id,
+          sensor_type_list_id
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
