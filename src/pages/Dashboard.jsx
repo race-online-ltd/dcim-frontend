@@ -113,7 +113,7 @@ const Dashboard = () => {
   }, [dataCenterId]);
 
   useEffect(() => {
-    if (sensorRealTimeValues.length > 0 && threshold.length > 0) {
+    if (sensorRealTimeValues.length > 0) {
       const grouped = sensorRealTimeValues.reduce((acc, sensor) => {
         if (!acc[sensor.sensor_type]) {
           acc[sensor.sensor_type] = {
@@ -195,7 +195,7 @@ const Dashboard = () => {
   }, [sensorRealTimeValues, threshold, stateConfig, dataCenterId]);
 
   useEffect(() => {
-    if (incommingMQTTData?.length > 0 && dataCenterId && threshold.length) {
+    if (incommingMQTTData?.length > 0 && dataCenterId) {
       const filteredDataCenter = incommingMQTTData.filter((item) => item.dc_id === dataCenterId);
       if (filteredDataCenter.length === 0) {
         return;
@@ -256,39 +256,33 @@ const Dashboard = () => {
           }),
         };
 
-        // Merge with existing data to keep previous sensor types
-        const existing = liveSensorData || { dc_id: dataCenterId, sensor_types: [] };
-        const mergedSensorTypes = [...existing.sensor_types];
+        setLiveSensorData((prev) => {
+          const existing = prev || { dc_id: dataCenterId, sensor_types: [] };
+          const mergedSensorTypes = [...existing.sensor_types];
 
-        enriched.sensor_types.forEach((newType) => {
-          const index = mergedSensorTypes.findIndex((t) => t.id === newType.id);
-          if (index >= 0) {
-            // Update existing type's sensors
-            const existingType = mergedSensorTypes[index];
-            const mergedSensors = [...existingType.sensors];
-            newType.sensors.forEach((newSensor) => {
-              const sensorIndex = mergedSensors.findIndex((s) => s.id === newSensor.id);
-              if (sensorIndex >= 0) {
-                mergedSensors[sensorIndex] = newSensor;
-              } else {
-                mergedSensors.push(newSensor);
-              }
-            });
-            mergedSensorTypes[index] = { ...existingType, sensors: mergedSensors };
-          } else {
-            // Add new type if it has sensors
-            if (newType.sensors?.length > 0) {
+          enriched.sensor_types.forEach((newType) => {
+            const index = mergedSensorTypes.findIndex((t) => t.id === newType.id);
+            if (index >= 0) {
+              const existingType = mergedSensorTypes[index];
+              const mergedSensors = [...existingType.sensors];
+              newType.sensors.forEach((newSensor) => {
+                const sensorIndex = mergedSensors.findIndex((s) => s.id === newSensor.id);
+                if (sensorIndex >= 0) {
+                  mergedSensors[sensorIndex] = newSensor;
+                } else {
+                  mergedSensors.push(newSensor);
+                }
+              });
+              mergedSensorTypes[index] = { ...existingType, sensors: mergedSensors };
+            } else if (newType.sensors?.length > 0) {
               mergedSensorTypes.push(newType);
             }
-          }
+          });
+
+          // Sort sensor types by id to maintain order: Temperature (1), Humidity (2), etc.
+          mergedSensorTypes.sort((a, b) => a.id - b.id);
+          return { ...latest, sensor_types: mergedSensorTypes };
         });
-
-        // Sort sensor types by id to maintain order: Temperature (1), Humidity (2), etc.
-        mergedSensorTypes.sort((a, b) => a.id - b.id);
-
-        const merged = { ...latest, sensor_types: mergedSensorTypes };
-
-        setLiveSensorData(merged);
       }
     }
   }, [incommingMQTTData, dataCenterId, threshold]);
