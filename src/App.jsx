@@ -47,6 +47,14 @@ import { DOControlConfigurationComponent } from './components/DOControlConfigura
 import DeviceAlarmDetails from './pages/DeviceAlarmDetails';
 import AlarmReport from './pages/reports/AlarmReport';
 import SensorLogReport from './pages/reports/SensorLogReport';
+import Ups from './pages/settings/Ups';
+import UpsForm from './pages/settings/UpsForm';
+import UpsModel from './pages/settings/UpsModel';
+import UpsModelForm from './pages/settings/UpsModelForm';
+import RegisterAddress from './pages/settings/RegisterAddress';
+import RegisterAddressForm from './pages/settings/RegisterAddressForm';
+import UpsModelConfig from './pages/settings/UpsModelConfig';
+import ModelWiseAddressMapping from './pages/settings/ModelWiseAddressMapping';
 
 
 const App = () => {
@@ -116,6 +124,19 @@ const App = () => {
             <Route path="settings/svgpreviewer" element={<SvgPreview />} />
             <Route path="reports/alarm" element={<AlarmReport />} />
             <Route path="reports/sensor-log" element={<SensorLogReport />} />
+
+            <Route path="settings/ups" element={<Ups />} />
+            <Route path="settings/ups-create" element={<UpsForm />} />
+            <Route path="settings/ups-edit/:id" element={<UpsForm />} />
+            <Route path="settings/ups-model" element={<UpsModel />} />
+            <Route path="settings/ups-model-create" element={<UpsModelForm />} />
+            <Route path="settings/ups-model-edit/:id" element={<UpsModelForm />} />
+
+            <Route path="settings/register-address" element={<RegisterAddress />} />
+            <Route path="settings/register-address-create" element={<RegisterAddressForm />} />
+            <Route path="settings/register-address-edit/:id" element={<RegisterAddressForm />} />
+            <Route path="settings/ups-model-config" element={<UpsModelConfig />} />
+            <Route path="settings/model-wise-address-mapping" element={<ModelWiseAddressMapping />} />
 
             <Route path="roles" element={<RoleList />} />
             <Route path="roles/create" element={<CreateRole />} />
