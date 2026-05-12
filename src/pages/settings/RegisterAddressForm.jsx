@@ -184,7 +184,6 @@ const RegisterAddressForm = () => {
     name: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const isEditMode = !!id;
 
@@ -197,7 +196,7 @@ const RegisterAddressForm = () => {
             name: data.name || '',
           });
         } catch (err) {
-          setError('Failed to load Register Address data: ' + err.message);
+          console.error('Failed to load Register Address data:', err);
         }
       };
       loadRegisterAddress();
@@ -225,7 +224,6 @@ const RegisterAddressForm = () => {
       navigate('/admin/settings/register-address');
     } catch (err) {
       errorMessage(err);
-      setError('Save failed: ' + err.message);
       setLoading(false);
     }
   };
@@ -263,7 +261,6 @@ const RegisterAddressForm = () => {
           </div>
         </header>
 
-        {error && <div className="alert-danger">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-grid">

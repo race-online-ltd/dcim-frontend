@@ -185,7 +185,6 @@ const UpsModelForm = () => {
     protocol: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const isEditMode = !!id;
 
@@ -199,7 +198,7 @@ const UpsModelForm = () => {
             protocol: data.protocol || '',
           });
         } catch (err) {
-          setError('Failed to load UPS Model data: ' + err.message);
+          console.error('Failed to load UPS Model data:', err);
         }
       };
       loadUpsModel();
@@ -227,7 +226,6 @@ const UpsModelForm = () => {
       navigate('/admin/settings/ups-model');
     } catch (err) {
       errorMessage(err);
-      setError('Save failed: ' + err.message);
       setLoading(false);
     }
   };
@@ -265,7 +263,6 @@ const UpsModelForm = () => {
           </div>
         </header>
 
-        {error && <div className="alert-danger">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-grid">

@@ -186,7 +186,6 @@ const UpsForm = () => {
     slave_id: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const isEditMode = !!id;
 
@@ -201,7 +200,7 @@ const UpsForm = () => {
             slave_id: data.slave_id || '',
           });
         } catch (err) {
-          setError('Failed to load UPS data: ' + err.message);
+          console.error('Failed to load UPS data:', err);
         }
       };
       loadUps();
@@ -229,7 +228,6 @@ const UpsForm = () => {
       navigate('/admin/settings/ups');
     } catch (err) {
       errorMessage(err);
-      setError('Save failed: ' + err.message);
       setLoading(false);
     }
   };
@@ -267,7 +265,6 @@ const UpsForm = () => {
           </div>
         </header>
 
-        {error && <div className="alert-danger">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-grid">

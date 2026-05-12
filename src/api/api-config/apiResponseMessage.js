@@ -1,7 +1,22 @@
 import { toast } from "react-toastify";
 
 export const errorMessage = (error) => {
-  toast.error(error.response?.data?.message || "An unexpected error occurred", {
+  let message = "An unexpected error occurred";
+
+  if (error.response?.data) {
+    if (error.response.data.errors) {
+      // Extract the first validation error message
+      const firstErrorKey = Object.keys(error.response.data.errors)[0];
+      const errors = error.response.data.errors[firstErrorKey];
+      message = Array.isArray(errors) ? errors[0] : errors;
+    } else if (error.response.data.message) {
+      message = error.response.data.message;
+    }
+  } else if (error.message) {
+    message = error.message;
+  }
+
+  toast.error(message, {
     position: "top-right",
   });
 };
