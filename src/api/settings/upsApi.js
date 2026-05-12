@@ -21,7 +21,7 @@ export const fetchUps = async (id) => {
 export const createUps = async (data) => {
     try {
         const response = await apiClient.post('/ups', data);
-        return response.data.data;
+        return response.data;
     } catch (error) {
         throw error.response?.data || error;
     }
@@ -30,7 +30,7 @@ export const createUps = async (data) => {
 export const updateUps = async (id, data) => {
     try {
         const response = await apiClient.put(`/ups/${id}`, data);
-        return response.data.data;
+        return response.data;
     } catch (error) {
         throw error.response?.data || error;
     }

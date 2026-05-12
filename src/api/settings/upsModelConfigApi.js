@@ -21,7 +21,7 @@ export const fetchUpsModelConfig = async (id) => {
 export const createUpsModelConfig = async (data) => {
     try {
         const response = await apiClient.post('/ups-model-config', data);
-        return response.data.data;
+        return response.data;
     } catch (error) {
         throw error.response?.data || error;
     }
@@ -30,7 +30,7 @@ export const createUpsModelConfig = async (data) => {
 export const updateUpsModelConfig = async (id, data) => {
     try {
         const response = await apiClient.put(`/ups-model-config/${id}`, data);
-        return response.data.data;
+        return response.data;
     } catch (error) {
         throw error.response?.data || error;
     }

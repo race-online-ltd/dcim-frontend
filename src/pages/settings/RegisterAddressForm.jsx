@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { fetchRegisterAddress, createRegisterAddress, updateRegisterAddress } from '../../api/settings/registerAddressApi';
+import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
 
 const buttonStyles = `
 .btn {
@@ -214,13 +215,16 @@ const RegisterAddressForm = () => {
     setError(null);
 
     try {
+      let res;
       if (isEditMode) {
-        await updateRegisterAddress(id, registerAddress);
+        res = await updateRegisterAddress(id, registerAddress);
       } else {
-        await createRegisterAddress(registerAddress);
+        res = await createRegisterAddress(registerAddress);
       }
+      successMessage(res);
       navigate('/admin/settings/register-address');
     } catch (err) {
+      errorMessage(err);
       setError('Save failed: ' + err.message);
       setLoading(false);
     }

@@ -5,6 +5,9 @@ import Button from "../../components/ui/Button";
 import DataTable from "../../components/table/DataTable";
 import { fetchUpsModelConfigs, deleteUpsModelConfig } from '../../api/settings/upsModelConfigApi';
 import { exportToCSV } from '../../utils/exportUtils';
+import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 
 const iconButtonStyles = `
     .data-table-btn-icon {
@@ -73,17 +76,27 @@ const UpsModelConfig = () => {
     navigate(`/admin/settings/ups-model-config-edit/${id}`);
   }, [navigate]);
 
-  const handleDelete = useCallback(async (id) => {
-    if (window.confirm('Are you sure you want to delete this config?')) {
-      try {
-        await deleteUpsModelConfig(id);
-        loadData();
-      } catch (error) {
-        console.error('Failed to delete config:', error);
-        alert('Failed to delete config');
-      }
-    }
-  }, [loadData]);
+  const handleDelete = useCallback((id) => {
+    confirmAlert({
+      title: 'Confirm to delete',
+      message: 'Are you sure you want to delete this UPS model config?',
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: async () => {
+            try {
+              const res = await deleteUpsModelConfig(id);
+              successMessage(res);
+              loadData();
+            } catch (err) {
+              errorMessage(err);
+            }
+          },
+        },
+        { label: 'No' },
+      ],
+    });
+  }, [loadData, deleteUpsModelConfig, successMessage, errorMessage]);
 
   const handleExport = () => {
     const exportData = configData.map(item => ({

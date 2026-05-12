@@ -21,7 +21,7 @@ export const fetchModelWiseAddressMapping = async (id) => {
 export const createModelWiseAddressMapping = async (data) => {
     try {
         const response = await apiClient.post('/model-wise-address-mappings', data);
-        return response.data.data;
+        return response.data;
     } catch (error) {
         throw error.response?.data || error;
     }
@@ -30,7 +30,7 @@ export const createModelWiseAddressMapping = async (data) => {
 export const updateModelWiseAddressMapping = async (id, data) => {
     try {
         const response = await apiClient.put(`/model-wise-address-mappings/${id}`, data);
-        return response.data.data;
+        return response.data;
     } catch (error) {
         throw error.response?.data || error;
     }

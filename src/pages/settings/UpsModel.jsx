@@ -6,6 +6,7 @@ import DataTable from "../../components/table/DataTable";
 import { fetchUpsModels, deleteUpsModel } from "../../api/settings/upsModelApi";
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
 
 const iconButtonStyles = `
     .data-table-btn-icon {
@@ -84,17 +85,18 @@ const UpsModel = () => {
           label: 'Yes',
           onClick: async () => {
             try {
-              await deleteUpsModel(id);
+              const res = await deleteUpsModel(id);
+              successMessage(res);
               setUpsModelData(prev => prev.filter(item => item.id !== id));
             } catch (err) {
-              setError('Failed to delete UPS Model.');
+              errorMessage(err);
             }
           },
         },
         { label: 'No' },
       ],
     });
-  }, []);
+  }, [deleteUpsModel, successMessage, errorMessage]);
 
   const handleExport = () => {
     console.log('Export UPS Model data');
@@ -167,6 +169,7 @@ const UpsModel = () => {
               searchable={true} 
               selection={false}
               isBackendPagination={false}
+              isLoading={loading}
             />
         </div>
       </div>

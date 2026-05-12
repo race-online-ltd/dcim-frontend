@@ -8,6 +8,7 @@ import { fetchUpsModelConfig, createUpsModelConfig, updateUpsModelConfig } from 
 import { fetchUpsList } from '../../api/settings/upsApi';
 import { fetchUpsModels } from '../../api/settings/upsModelApi';
 import { fetchDataCenters } from '../../api/settings/dataCenterApi';
+import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
 
 const UpsModelConfigSchema = Yup.object().shape({
   ups_id: Yup.string().required('UPS is required'),
@@ -222,13 +223,16 @@ const UpsModelConfigForm = () => {
         datacenter_id: Number(values.datacenter_id),
       };
 
+      let res;
       if (isEditMode) {
-        await updateUpsModelConfig(id, dataToSend);
+        res = await updateUpsModelConfig(id, dataToSend);
       } else {
-        await createUpsModelConfig(dataToSend);
+        res = await createUpsModelConfig(dataToSend);
       }
+      successMessage(res);
       navigate('/admin/settings/ups-model-config');
     } catch (err) {
+      errorMessage(err);
       console.error('Save failed:', err);
     } finally {
       setSubmitting(false);

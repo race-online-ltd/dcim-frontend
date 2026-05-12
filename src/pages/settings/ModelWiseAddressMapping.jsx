@@ -5,6 +5,9 @@ import Button from "../../components/ui/Button";
 import DataTable from "../../components/table/DataTable";
 import { fetchModelWiseAddressMappings, deleteModelWiseAddressMapping } from '../../api/settings/modelWiseAddressMappingApi';
 import { exportToCSV } from '../../utils/exportUtils';
+import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 
 const iconButtonStyles = `
     .data-table-btn-icon {
@@ -73,17 +76,27 @@ const ModelWiseAddressMapping = () => {
     navigate(`/admin/settings/model-wise-address-mapping-edit/${id}`);
   }, [navigate]);
 
-  const handleDelete = useCallback(async (id) => {
-    if (window.confirm('Are you sure you want to delete this mapping?')) {
-      try {
-        await deleteModelWiseAddressMapping(id);
-        loadData();
-      } catch (error) {
-        console.error('Failed to delete mapping:', error);
-        alert('Failed to delete mapping');
-      }
-    }
-  }, [loadData]);
+  const handleDelete = useCallback((id) => {
+    confirmAlert({
+      title: 'Confirm to delete',
+      message: 'Are you sure you want to delete this mapping?',
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: async () => {
+            try {
+              const res = await deleteModelWiseAddressMapping(id);
+              successMessage(res);
+              loadData();
+            } catch (err) {
+              errorMessage(err);
+            }
+          },
+        },
+        { label: 'No' },
+      ],
+    });
+  }, [loadData, deleteModelWiseAddressMapping, successMessage, errorMessage]);
 
   const handleExport = () => {
     const exportData = mappingData.map(item => ({

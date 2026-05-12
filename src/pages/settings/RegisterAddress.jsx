@@ -6,6 +6,7 @@ import DataTable from "../../components/table/DataTable";
 import { fetchRegisterAddresses, deleteRegisterAddress } from "../../api/settings/registerAddressApi";
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
 
 const iconButtonStyles = `
     .data-table-btn-icon {
@@ -84,17 +85,18 @@ const RegisterAddress = () => {
           label: 'Yes',
           onClick: async () => {
             try {
-              await deleteRegisterAddress(id);
+              const res = await deleteRegisterAddress(id);
+              successMessage(res);
               setRegisterAddressData(prev => prev.filter(item => item.id !== id));
             } catch (err) {
-              setError('Failed to delete Register Address.');
+              errorMessage(err);
             }
           },
         },
         { label: 'No' },
       ],
     });
-  }, []);
+  }, [deleteRegisterAddress, successMessage, errorMessage]);
 
   const handleExport = () => {
     console.log('Export Register Address data');
@@ -166,6 +168,7 @@ const RegisterAddress = () => {
               searchable={true} 
               selection={false}
               isBackendPagination={false}
+              isLoading={loading}
             />
         </div>
       </div>

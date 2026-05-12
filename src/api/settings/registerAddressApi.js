@@ -21,7 +21,7 @@ export const fetchRegisterAddress = async (id) => {
 export const createRegisterAddress = async (data) => {
     try {
         const response = await apiClient.post('/register-addresses', data);
-        return response.data.data;
+        return response.data;
     } catch (error) {
         throw error.response?.data || error;
     }
@@ -30,7 +30,7 @@ export const createRegisterAddress = async (data) => {
 export const updateRegisterAddress = async (id, data) => {
     try {
         const response = await apiClient.put(`/register-addresses/${id}`, data);
-        return response.data.data;
+        return response.data;
     } catch (error) {
         throw error.response?.data || error;
     }

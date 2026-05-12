@@ -7,10 +7,12 @@ import Button from '../../components/ui/Button';
 import { fetchModelWiseAddressMapping, createModelWiseAddressMapping, updateModelWiseAddressMapping } from '../../api/settings/modelWiseAddressMappingApi';
 import { fetchUpsModels } from '../../api/settings/upsModelApi';
 import { fetchRegisterAddresses } from '../../api/settings/registerAddressApi';
+import MultiSelectField from '../../components/MultiSelectField';
+import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
 
-const ModelWiseAddressMappingSchema = Yup.object().shape({
+const validationSchema = Yup.object().shape({
   model_id: Yup.string().required('Model is required'),
-  address_id: Yup.string().required('Address is required'),
+  address_ids: Yup.array().min(1, 'At least one address is required').required('Address is required'),
 });
 
 const buttonStyles = `
@@ -171,15 +173,15 @@ const formLayoutStyles = `
 const ModelWiseAddressMappingForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isEditMode = !!id;
+
   const [initialValues, setInitialValues] = useState({
     model_id: '',
-    address_id: '',
+    address_ids: [],
   });
   const [upsModels, setUpsModels] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const isEditMode = !!id;
 
   useEffect(() => {
     const loadData = async () => {
@@ -195,7 +197,7 @@ const ModelWiseAddressMappingForm = () => {
           const data = await fetchModelWiseAddressMapping(id);
           setInitialValues({
             model_id: data.model_id || '',
-            address_id: data.address_id || '',
+            address_ids: data.address_ids || [],
           });
         }
       } catch (err) {
@@ -207,20 +209,26 @@ const ModelWiseAddressMappingForm = () => {
     loadData();
   }, [id, isEditMode]);
 
+  const modelOptions = upsModels.map(m => ({ value: m.id, label: m.name }));
+  const addressOptions = addresses.map(a => ({ value: a.id, label: a.name }));
+
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
+      let res;
       const dataToSend = {
         model_id: Number(values.model_id),
-        address_id: Number(values.address_id),
+        address_ids: values.address_ids.map(id => Number(id)),
       };
-
+      
       if (isEditMode) {
-        await updateModelWiseAddressMapping(id, dataToSend);
+        res = await updateModelWiseAddressMapping(id, dataToSend);
       } else {
-        await createModelWiseAddressMapping(dataToSend);
+        res = await createModelWiseAddressMapping(dataToSend);
       }
+      successMessage(res);
       navigate('/admin/settings/model-wise-address-mapping');
     } catch (err) {
+      errorMessage(err);
       console.error('Save failed:', err);
     } finally {
       setSubmitting(false);
@@ -267,7 +275,7 @@ const ModelWiseAddressMappingForm = () => {
         <Formik
           initialValues={initialValues}
           enableReinitialize
-          validationSchema={ModelWiseAddressMappingSchema}
+          validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
           {({ isSubmitting, isValid }) => (
@@ -275,37 +283,25 @@ const ModelWiseAddressMappingForm = () => {
               <div className="form-group">
                 <label htmlFor="model_id">Model Name</label>
                 <Field
-                  as="select"
-                  id="model_id"
                   name="model_id"
-                  className="form-control"
-                >
-                  <option value="">Select Model</option>
-                  {upsModels.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.name}
-                    </option>
-                  ))}
-                </Field>
+                  component={MultiSelectField}
+                  options={modelOptions}
+                  isMulti={false}
+                  placeholder="Select Model"
+                />
                 <ErrorMessage name="model_id" component="div" className="text-danger" />
               </div>
 
               <div className="form-group">
-                <label htmlFor="address_id">Address Name</label>
+                <label htmlFor="address_ids">Address Name</label>
                 <Field
-                  as="select"
-                  id="address_id"
-                  name="address_id"
-                  className="form-control"
-                >
-                  <option value="">Select Address</option>
-                  {addresses.map((addr) => (
-                    <option key={addr.id} value={addr.id}>
-                      {addr.name}
-                    </option>
-                  ))}
-                </Field>
-                <ErrorMessage name="address_id" component="div" className="text-danger" />
+                  name="address_ids"
+                  component={MultiSelectField}
+                  options={addressOptions}
+                  isMulti={true}
+                  placeholder="Select Addresses"
+                />
+                <ErrorMessage name="address_ids" component="div" className="text-danger" />
               </div>
 
               <div className="form-actions">

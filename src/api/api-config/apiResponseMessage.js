@@ -7,13 +7,13 @@ export const errorMessage = (error) => {
 };
 
 export const successMessage = (response) => {
-  toast.success(response.message || "Operation Error !", {
+  toast.success(response?.message || "Operation successful !", {
     position: "top-right",
   });
 };
 
 export const warningMessage = (response) => {
-  toast.warn(response.message || "Operation Error !", {
+  toast.warn(response?.message || "Operation Error !", {
     position: "top-right",
     autoClose: 30000,
   });

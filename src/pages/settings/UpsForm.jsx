@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { fetchUps, createUps, updateUps } from '../../api/settings/upsApi';
+import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
 
 const buttonStyles = `
 .btn {
@@ -218,13 +219,16 @@ const UpsForm = () => {
     setError(null);
 
     try {
+      let res;
       if (isEditMode) {
-        await updateUps(id, ups);
+        res = await updateUps(id, ups);
       } else {
-        await createUps(ups);
+        res = await createUps(ups);
       }
+      successMessage(res);
       navigate('/admin/settings/ups');
     } catch (err) {
+      errorMessage(err);
       setError('Save failed: ' + err.message);
       setLoading(false);
     }
