@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, Plus, Download } from 'lucide-react';
 import Button from "../../components/ui/Button";
 import DataTable from "../../components/table/DataTable";
+import { fetchUpsModelConfigs, deleteUpsModelConfig } from '../../api/settings/upsModelConfigApi';
+import { exportToCSV } from '../../utils/exportUtils';
 
 const iconButtonStyles = `
     .data-table-btn-icon {
@@ -51,23 +53,53 @@ const UpsModelConfig = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleEdit = useCallback((id) => {
-    console.log('Edit Config:', id);
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetchUpsModelConfigs();
+      setConfigData(data);
+    } catch (error) {
+      console.error('Failed to fetch configs:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleDelete = useCallback((id) => {
-    console.log('Delete Config:', id);
-  }, []);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleEdit = useCallback((id) => {
+    navigate(`/admin/settings/ups-model-config-edit/${id}`);
+  }, [navigate]);
+
+  const handleDelete = useCallback(async (id) => {
+    if (window.confirm('Are you sure you want to delete this config?')) {
+      try {
+        await deleteUpsModelConfig(id);
+        loadData();
+      } catch (error) {
+        console.error('Failed to delete config:', error);
+        alert('Failed to delete config');
+      }
+    }
+  }, [loadData]);
 
   const handleExport = () => {
-    console.log('Export Config data');
+    const exportData = configData.map(item => ({
+      ID: item.id,
+      'Datacenter Name': item.datacenter_name,
+      'Ups Name': item.ups_name,
+      'Model Name': item.model_name,
+    }));
+    exportToCSV(exportData, 'ups_model_configs.csv');
   };
 
   const columns = useMemo(() => [
     { key: "id", header: "ID" },
+    { key: "datacenter_name", header: "Datacenter Name" },
     { key: "ups_name", header: "Ups Name" },
     { key: "model_name", header: "Model Name" },
-    { key: "datacenter_name", header: "Datacenter Name" },
     {
       key: "actions",
       header: "Actions",
@@ -105,7 +137,7 @@ const UpsModelConfig = () => {
                 <Button
                     intent="primary"
                     leftIcon={Plus}
-                    onClick={() => console.log('Add Config')}
+                    onClick={() => navigate('/admin/settings/ups-model-config-create')}
                 >
                     Add New
                 </Button>
@@ -113,6 +145,7 @@ const UpsModelConfig = () => {
                     intent="secondary"
                     leftIcon={Download}
                     onClick={handleExport}
+                    disabled={configData.length === 0}
                 >
                     Export
                 </Button>
@@ -129,6 +162,7 @@ const UpsModelConfig = () => {
               searchable={true} 
               selection={false}
               isBackendPagination={false}
+              isLoading={loading}
             />
         </div>
       </div>

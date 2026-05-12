@@ -55,6 +55,8 @@ import RegisterAddress from './pages/settings/RegisterAddress';
 import RegisterAddressForm from './pages/settings/RegisterAddressForm';
 import UpsModelConfig from './pages/settings/UpsModelConfig';
 import ModelWiseAddressMapping from './pages/settings/ModelWiseAddressMapping';
+import ModelWiseAddressMappingForm from './pages/settings/ModelWiseAddressMappingForm';
+import UpsModelConfigForm from './pages/settings/UpsModelConfigForm';
 
 
 const App = () => {
@@ -136,7 +138,11 @@ const App = () => {
             <Route path="settings/register-address-create" element={<RegisterAddressForm />} />
             <Route path="settings/register-address-edit/:id" element={<RegisterAddressForm />} />
             <Route path="settings/ups-model-config" element={<UpsModelConfig />} />
+            <Route path="settings/ups-model-config-create" element={<UpsModelConfigForm />} />
+            <Route path="settings/ups-model-config-edit/:id" element={<UpsModelConfigForm />} />
             <Route path="settings/model-wise-address-mapping" element={<ModelWiseAddressMapping />} />
+            <Route path="settings/model-wise-address-mapping-create" element={<ModelWiseAddressMappingForm />} />
+            <Route path="settings/model-wise-address-mapping-edit/:id" element={<ModelWiseAddressMappingForm />} />
 
             <Route path="roles" element={<RoleList />} />
             <Route path="roles/create" element={<CreateRole />} />

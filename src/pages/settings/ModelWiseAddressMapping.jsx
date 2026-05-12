@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, Plus, Download } from 'lucide-react';
 import Button from "../../components/ui/Button";
 import DataTable from "../../components/table/DataTable";
+import { fetchModelWiseAddressMappings, deleteModelWiseAddressMapping } from '../../api/settings/modelWiseAddressMappingApi';
+import { exportToCSV } from '../../utils/exportUtils';
 
 const iconButtonStyles = `
     .data-table-btn-icon {
@@ -51,16 +53,45 @@ const ModelWiseAddressMapping = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleEdit = useCallback((id) => {
-    console.log('Edit Mapping:', id);
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetchModelWiseAddressMappings();
+      setMappingData(data);
+    } catch (error) {
+      console.error('Failed to fetch mappings:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleDelete = useCallback((id) => {
-    console.log('Delete Mapping:', id);
-  }, []);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleEdit = useCallback((id) => {
+    navigate(`/admin/settings/model-wise-address-mapping-edit/${id}`);
+  }, [navigate]);
+
+  const handleDelete = useCallback(async (id) => {
+    if (window.confirm('Are you sure you want to delete this mapping?')) {
+      try {
+        await deleteModelWiseAddressMapping(id);
+        loadData();
+      } catch (error) {
+        console.error('Failed to delete mapping:', error);
+        alert('Failed to delete mapping');
+      }
+    }
+  }, [loadData]);
 
   const handleExport = () => {
-    console.log('Export Mapping data');
+    const exportData = mappingData.map(item => ({
+      ID: item.id,
+      'Model Name': item.model_name,
+      'Address Name': item.address_name,
+    }));
+    exportToCSV(exportData, 'model_wise_address_mappings.csv');
   };
 
   const columns = useMemo(() => [
@@ -104,7 +135,7 @@ const ModelWiseAddressMapping = () => {
                 <Button
                     intent="primary"
                     leftIcon={Plus}
-                    onClick={() => console.log('Add Mapping')}
+                    onClick={() => navigate('/admin/settings/model-wise-address-mapping-create')}
                 >
                     Add New
                 </Button>
@@ -112,6 +143,7 @@ const ModelWiseAddressMapping = () => {
                     intent="secondary"
                     leftIcon={Download}
                     onClick={handleExport}
+                    disabled={mappingData.length === 0}
                 >
                     Export
                 </Button>
@@ -128,6 +160,7 @@ const ModelWiseAddressMapping = () => {
               searchable={true} 
               selection={false}
               isBackendPagination={false}
+              isLoading={loading}
             />
         </div>
       </div>
