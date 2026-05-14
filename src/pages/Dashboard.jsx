@@ -551,7 +551,13 @@ const Dashboard = () => {
     3: <DieselGenerator data={liveDieselData} />,
     4: <FuelTank />,
     5: <PAC />,
-    6: <UPS />,
+    6: <UPS 
+      data={[
+        { id: "UPS-01", model: "Centiel 300kVA", status: "Active" },
+        { id: "UPS-02", model: "Eaton 200kVA", status: "On Battery" },
+        { id: "UPS-03", model: "APC 150kVA", status: "Fault" },
+      ]} 
+  />,
     7: <Rectifire />,
     8: <Bettery />,
     9: <Control live={liveControlSensorData?.sensor_types?.[0]} />,
