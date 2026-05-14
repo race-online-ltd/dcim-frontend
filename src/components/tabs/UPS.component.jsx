@@ -118,54 +118,37 @@ const buildAlarmRows = (alarms = []) =>
     };
   });
 
-const UPSHeader = memo(
-  ({ id, model, capacity, lastUpdated, status }) => (
-    <div className="ups-panel__header">
-      <div className="ups-panel__heading">
-        <div>
-          {/* <span className="ups-panel__eyebrow">Power Monitoring</span> */}
-          <h2 className="ups-panel__title">{id || "--"}</h2>
-        </div>
-        <span className={`ups-status-badge is-${getStatusTone(status)}`}>{status || "Unknown"}</span>
+const UPSHeader = memo(({ id, model, capacity, lastUpdated, status }) => (
+  <div className="ups-panel__header">
+    <div className="ups-panel__meta">
+      <div className="ups-meta-card ups-meta-card--stacked">
+        <span className="ups-meta-card__label">UPS</span>
+        <span className="ups-meta-card__value ups-meta-card__value--primary">{id || "--"}</span>
+        <span className="ups-meta-card__subvalue">
+          <span className={`ups-status-pill is-${getStatusTone(status)}`}>{status || "Unknown"}</span>
+        </span>
       </div>
-
-      <div className="ups-panel__meta">
-        <div className="ups-meta-card">
-          <span className="ups-meta-card__label">Model</span>
-          <span className="ups-meta-card__value">{model || "--"}</span>
-        </div>
-        <div className="ups-meta-card">
-          <span className="ups-meta-card__label">Capacity</span>
-          <span className="ups-meta-card__value">{capacity || "--"}</span>
-        </div>
-        <div className="ups-meta-card">
-          <span className="ups-meta-card__label">Last Updated</span>
-          <span className="ups-meta-card__value">{lastUpdated || "--"}</span>
-        </div>
+      <div className="ups-meta-card">
+        <span className="ups-meta-card__label">Model</span>
+        <span className="ups-meta-card__value">{model || "--"}</span>
+      </div>
+      <div className="ups-meta-card">
+        <span className="ups-meta-card__label">Capacity</span>
+        <span className="ups-meta-card__value">{capacity || "--"}</span>
+      </div>
+      <div className="ups-meta-card">
+        <span className="ups-meta-card__label">Time</span>
+        <span className="ups-meta-card__value">{lastUpdated || "--"}</span>
       </div>
     </div>
-  )
-);
+  </div>
+));
 
 UPSHeader.displayName = "UPSHeader";
 
 const UPSCard = memo(({ upsData }) => {
   const measurementsRows = useMemo(
     () => [
-      {
-        cells: [
-          { content: "Status", className: "ups-table__metric" },
-          {
-            content: (
-              <span className={`ups-status-pill is-${getStatusTone(upsData.status)}`}>
-                {upsData.status || "--"}
-              </span>
-            ),
-            className: "ups-table__status-cell",
-            colSpan: 2,
-          },
-        ],
-      },
       ...buildPhaseRows("Input Voltage (V)", upsData.inputVoltage),
       {
         cells: [

@@ -32,34 +32,9 @@
 }
 
 .ups-panel__header {
-  padding: 12px 14px 8px;
+  padding: 8px 12px 6px;
   background: var(--ups-bg);
   border-bottom: none;
-}
-
-.ups-panel__heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.ups-panel__eyebrow {
-  display: inline-block;
-  margin-bottom: 4px;
-  color: var(--ups-accent);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.ups-panel__title {
-  margin: 0;
-  font-size: clamp(1.2rem, 1.8vw, 1.6rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
 }
 
 .ups-status-badge,
@@ -69,7 +44,7 @@
   justify-content: center;
   border-radius: 999px;
   border: 1px solid transparent;
-  font-size: 0.85rem;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -80,7 +55,7 @@
 }
 
 .ups-status-pill {
-  padding: 5px 10px;
+  padding: 3px 8px;
 }
 
 .ups-status-badge.is-success,
@@ -114,8 +89,8 @@
 .ups-panel__meta,
 .ups-panel__summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .ups-meta-card,
@@ -123,36 +98,64 @@
   background: var(--ups-surface-card);
   border: 1px solid var(--ups-border);
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 6px 8px;
   min-width: 0;
 }
 
 .ups-meta-card__label,
 .ups-summary-card__label {
-  display: block;
-  margin-bottom: 4px;
+  display: inline-flex;
+  align-items: center;
   color: var(--ups-muted);
-  font-size: 0.76rem;
+  font-size: 12px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .ups-meta-card__value,
 .ups-summary-card__value {
-  display: block;
-  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 12px;
   font-weight: 600;
   word-break: break-word;
+  text-align: right;
+  min-width: 0;
 }
 
-.ups-panel__meta {
-  margin-bottom: 10px;
+.ups-meta-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ups-meta-card--stacked {
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-direction: row;
+}
+
+.ups-meta-card__value--primary {
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+}
+
+.ups-meta-card__subvalue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .ups-panel__content {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  padding: 8px 14px 12px;
+  gap: 8px;
+  padding: 4px 12px 8px;
   background: var(--ups-bg);
 }
 
@@ -165,14 +168,14 @@
 }
 
 .ups-table-card__header {
-  padding: 10px 12px;
+  padding: 6px 8px;
   border-bottom: 1px solid var(--ups-border);
   background: var(--ups-surface-card);
 }
 
 .ups-table-card__title {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -185,15 +188,16 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 280px;
+  min-width: 240px;
 }
 
 .ups-table td {
-  padding: 8px 10px;
+  padding: 4px 6px;
   border-bottom: 1px solid #e5e7eb;
   border-right: 1px solid #eef2f6;
   vertical-align: middle;
-  font-size: 0.84rem;
+  font-size: 12px;
+  line-height: 1.1;
 }
 
 .ups-table tr:last-child td {
@@ -211,9 +215,9 @@
 }
 
 .ups-table__phase {
-  width: 58px;
+  width: 48px;
   color: var(--ups-muted);
-  font-size: 0.76rem;
+  font-size: 12px;
   font-weight: 600;
   text-align: center;
   text-transform: uppercase;
@@ -237,9 +241,9 @@
 }
 
 .ups-table__alarm-index {
-  width: 50px;
+  width: 40px;
   color: var(--ups-muted);
-  font-size: 0.74rem;
+  font-size: 12px;
   font-weight: 600;
   text-align: center;
   background: #fafbfc;
@@ -268,12 +272,7 @@
 
   .ups-panel__header,
   .ups-panel__content {
-    padding: 10px;
-  }
-
-  .ups-panel__heading {
-    flex-direction: column;
-    align-items: stretch;
+    padding: 8px;
   }
 
   .ups-panel__meta,
@@ -282,12 +281,8 @@
     grid-template-columns: 1fr;
   }
 
-  .ups-status-badge {
-    align-self: flex-start;
-  }
-
   .ups-table td {
-    padding: 7px 9px;
-    font-size: 0.82rem;
+    padding: 4px 6px;
+    font-size: 12px;
   }
 }
