@@ -122,7 +122,6 @@ const UPSHeader = memo(({ id, model, capacity, lastUpdated, status }) => (
   <div className="ups-panel__header">
     <div className="ups-panel__meta">
       <div className="ups-meta-card ups-meta-card--stacked">
-        <span className="ups-meta-card__label">UPS</span>
         <span className="ups-meta-card__value ups-meta-card__value--primary">{id || "--"}</span>
         <span className="ups-meta-card__subvalue">
           <span className={`ups-status-pill is-${getStatusTone(status)}`}>{status || "Unknown"}</span>
