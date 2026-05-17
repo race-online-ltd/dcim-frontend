@@ -75,7 +75,8 @@ export const SLD = ({ data, live }) => {
       const id = path.getAttribute('id');
 
       const circleDatacenterMapping = {
-  1: (d) => /-169\.5,169\.5/.test(d),
+  // 1: (d) => /-169\.5,169\.5/.test(d),
+  1: (d) => /254\.5,254\.5/.test(d), 
   2: (d) => d !== null && /254\.5,254\.5/.test(d),
    3: (d) =>
     /254\.5,254\.5/.test(d || '') ||   // big circle
@@ -298,6 +299,10 @@ useEffect(() => {
   formikRef.current = formik;
 
 
+// console.log('Rendered SLD with dataCenterId:', dataCenterId);
+// console.log('Current sensor states:', Array.from(prevSensorStatesRef.current.entries()));
+// console.log('Detected circle-like paths:', circlePaths.current);
+// console.log('Live sensor updates:', live?.sensors);
 
 
   return (
