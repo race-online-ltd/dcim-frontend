@@ -184,6 +184,7 @@ const RegisterAddressForm = () => {
     name: '',
   });
   const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
   const isEditMode = !!id;
 
