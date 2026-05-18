@@ -186,6 +186,7 @@ const UpsForm = () => {
     slave_id: '',
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const isEditMode = !!id;
 

@@ -223,10 +223,16 @@ useEffect(() => {
   live.sensors.forEach(sensor => {
     if (!sensor.state?.length) return;
 
+
+
     // ✅ current active state
     const activeState = sensor.state.find(s => s.is_active);
     if (!activeState) return;
 
+        console.log('LIVE SENSOR', {
+    sensorId: sensor.id,
+    activeState,
+});
     // Get previous state for this sensor
     const prevState = prevSensorStatesRef.current.get(String(sensor.id));
     
@@ -301,8 +307,8 @@ useEffect(() => {
 
 // console.log('Rendered SLD with dataCenterId:', dataCenterId);
 // console.log('Current sensor states:', Array.from(prevSensorStatesRef.current.entries()));
-// console.log('Detected circle-like paths:', circlePaths.current);
-// console.log('Live sensor updates:', live?.sensors);
+console.log('Detected circle-like paths:', circlePaths.current);
+console.log('Live sensor updates:', live?.sensors);
 
 
   return (
