@@ -334,7 +334,11 @@ import {
   fetchTriggerTypeLists,
 } from '../../api/sensorListApi';
 import { fetchDataCenters } from '../../api/settings/dataCenterApi';
-import { fetchDevicesByDataCenter } from '../../api/deviceApi';
+import { fetchDevicesByDataCenter, fetchDevice } from '../../api/deviceApi';
+import { fetchUpsModels } from '../../api/settings/upsModelApi';
+import { fetchRegisterAddresses } from '../../api/settings/registerAddressApi';
+import { fetchAddressesByModel } from '../../api/settings/modelWiseAddressMappingApi';
+import CreatableSelect from 'react-select/creatable';
 
 // ================================================================
 // 1. CSS FOR LAYOUT AND UI/UX MATCH
@@ -572,32 +576,48 @@ const SensorForm = () => {
     location: '',
     status: true,
     timestamp: new Date().toISOString(),
+    // UPS specific fields
+    model_id: '',
+    register_address: '',
+    multiplication_factor: '',
+    unit: '',
+    ip_address: '',
   });
 
   const [dataCenters, setDataCenters] = useState([]);
   const [devices, setDevices] = useState([]);
   const [sensorTypes, setSensorTypes] = useState([]);
   const [triggerTypes, setTriggerTypes] = useState([]);
+  const [upsModels, setUpsModels] = useState([]);
+  const [registerAddresses, setRegisterAddresses] = useState([]);
+  const [allRegisterAddresses, setAllRegisterAddresses] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState(null); // Combining loading states
   const isLoading = isSubmitting || loadingData; // --- Master Data Loading Effect ---
+  const selectedType = sensorTypes.find((type) => String(type.id) === String(formData.sensor_type_list_id));
+  const isUpsSelected = selectedType && selectedType.name?.toLowerCase() === 'ups';
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [centers, sensorTypeList, triggerTypeList] = await Promise.all([
+        const [centers, sensorTypeList, triggerTypeList, modelsList, addressesList] = await Promise.all([
           fetchDataCenters(),
           fetchSensorTypeLists(),
           fetchTriggerTypeLists(),
+          fetchUpsModels(),
+          fetchRegisterAddresses(),
         ]);
 
         setDataCenters(centers);
         setSensorTypes(sensorTypeList);
         setTriggerTypes(triggerTypeList);
+        setUpsModels(modelsList);
+        setRegisterAddresses(addressesList);
+        setAllRegisterAddresses(addressesList);
 
         if (isEdit) {
-          await loadSensor(centers); // Pass centers to load devices immediately
+          await loadSensor(centers, addressesList); // Pass centers and addressesList to load devices immediately
         } else {
           setLoadingData(false);
         }
@@ -611,13 +631,34 @@ const SensorForm = () => {
   }, [id, isEdit]);
 
   // --- Single Sensor & Devices Loading Logic ---
-  const loadSensor = async (centers) => {
+  const loadSensor = async (centers, addressesList) => {
     try {
       const sensor = await fetchSensorList(id);
 
       // Load devices based on the sensor's data_center_id
       const deviceList = await fetchDevicesByDataCenter(sensor.data_center_id);
       setDevices(deviceList);
+
+      if (sensor.model_id) {
+        try {
+          const mappings = await fetchAddressesByModel(sensor.model_id, id);
+          if (Array.isArray(mappings) && mappings.length > 0) {
+            const resolved = mappings.map(m => {
+              const fullDetail = addressesList.find(addr => Number(addr.id) === Number(m.address_id) || Number(addr.name) === Number(m.address_id));
+              return {
+                id: m.address_id,
+                name: fullDetail ? fullDetail.name : String(m.address_id),
+                parameter_name: fullDetail ? fullDetail.parameter_name : '',
+                multiplication_factor: fullDetail ? fullDetail.multiplication_factor : '',
+                unit: fullDetail ? fullDetail.unit : '',
+              };
+            });
+            setRegisterAddresses(resolved);
+          }
+        } catch (err) {
+          console.error('Failed to load edit mode mapping:', err);
+        }
+      }
 
       setFormData({
         ...sensor,
@@ -628,6 +669,11 @@ const SensorForm = () => {
         sound_status: Boolean(sensor.sound_status),
         blink_status: Boolean(sensor.blink_status),
         status: Boolean(sensor.status),
+        model_id: sensor.model_id ? String(sensor.model_id) : '',
+        register_address: sensor.register_address || '',
+        multiplication_factor: sensor.multiplication_factor !== null && sensor.multiplication_factor !== undefined ? String(sensor.multiplication_factor) : '',
+        unit: sensor.unit || '',
+        ip_address: sensor.ip_address || '',
       });
     } catch (err) {
       setError('Failed to load sensor data: ' + err.message);
@@ -643,7 +689,7 @@ const SensorForm = () => {
         return;
       }
       // If we are in edit mode and the data_center_id hasn't changed, skip
-      if (isEdit && String(formData.data_center_id) === String(formData.data_center_id)) return;
+      if (devices.length > 0 && String(devices[0].data_center_id) === String(formData.data_center_id)) return;
 
       try {
         const deviceList = await fetchDevicesByDataCenter(formData.data_center_id);
@@ -666,18 +712,101 @@ const SensorForm = () => {
     const { name, value, type, checked } = e.target;
     // Special handling to reset device_id when data_center_id changes
     let newValue = type === 'checkbox' ? checked : value;
+    
     if (name === 'data_center_id' && value !== formData.data_center_id) {
       setFormData((prevFormData) => ({
         ...prevFormData,
         [name]: newValue,
         device_id: '', // Reset device when DC changes
+        ip_address: '',
+        model_id: '',
       }));
+    } else if (name === 'device_id') {
+      // Event-driven fetch for device details (IP & UPS model) when a device is selected
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        device_id: value,
+      }));
+      if (value) {
+        fetchDevice(value)
+          .then((deviceObj) => {
+            if (deviceObj) {
+              const modelIdVal = deviceObj.model_id ? String(deviceObj.model_id) : '';
+              
+              setFormData((prev) => ({
+                ...prev,
+                ip_address: deviceObj.ip || '',
+                model_id: modelIdVal,
+              }));
+
+              // Fetch model-wise address mappings for this model!
+              if (modelIdVal) {
+                fetchAddressesByModel(modelIdVal)
+                  .then((mappings) => {
+                    if (Array.isArray(mappings) && mappings.length > 0) {
+                      const resolved = mappings.map(m => {
+                        const fullDetail = allRegisterAddresses.find(addr => Number(addr.id) === Number(m.address_id) || Number(addr.name) === Number(m.address_id));
+                        return {
+                          id: m.address_id,
+                          name: fullDetail ? fullDetail.name : String(m.address_id),
+                          parameter_name: fullDetail ? fullDetail.parameter_name : '',
+                          multiplication_factor: fullDetail ? fullDetail.multiplication_factor : '',
+                          unit: fullDetail ? fullDetail.unit : '',
+                        };
+                      });
+                      
+                      setRegisterAddresses(resolved);
+                      
+                      if (resolved.length > 0) {
+                        const firstAddr = resolved[0];
+                        setFormData((prev) => ({
+                          ...prev,
+                          register_address: firstAddr.name,
+                          multiplication_factor: firstAddr.multiplication_factor !== null && firstAddr.multiplication_factor !== undefined ? String(firstAddr.multiplication_factor) : '',
+                          unit: firstAddr.unit || '',
+                        }));
+                      }
+                    } else {
+                      setRegisterAddresses(allRegisterAddresses);
+                    }
+                  })
+                  .catch((err) => {
+                    console.error('Failed to load address mappings:', err);
+                    setRegisterAddresses(allRegisterAddresses);
+                  });
+              }
+            }
+          })
+          .catch((err) => console.error('Failed to load device details:', err));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          ip_address: '',
+          model_id: '',
+          register_address: '',
+          multiplication_factor: '',
+          unit: '',
+        }));
+        setRegisterAddresses(allRegisterAddresses);
+      }
     } else {
       setFormData((prevFormData) => ({
         ...prevFormData,
         [name]: newValue,
       }));
     }
+  };
+
+  const handleRegisterAddressChange = (e) => {
+    const addrName = e.target.value;
+    const selectedAddr = allRegisterAddresses.find(addr => String(addr.name) === String(addrName) || String(addr.id) === String(addrName));
+    
+    setFormData(prev => ({
+      ...prev,
+      register_address: addrName,
+      multiplication_factor: selectedAddr ? String(selectedAddr.multiplication_factor) : '',
+      unit: selectedAddr ? selectedAddr.unit : '',
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -699,21 +828,26 @@ const SensorForm = () => {
     setIsSubmitting(true);
     setError(null);
 
-    try {
-      const payload = {
-        ...formData, // Convert back to number/string for API
-        data_center_id: Number(formData.data_center_id),
-        device_id: Number(formData.device_id),
-        sensor_type_list_id: Number(formData.sensor_type_list_id),
-        trigger_type_id: Number(formData.trigger_type_id),
-        sound_status: formData.sound_status ? 1 : 0,
-        blink_status: formData.blink_status ? 1 : 0,
-        status: formData.status ? 1 : 0,
-        // Ensure unique_id is only included if it exists and is needed by the API for update
-        unique_id: formData.unique_id || undefined,
-        timestamp: formData.timestamp,
-      };
+    const payload = {
+      ...formData,
+      data_center_id: Number(formData.data_center_id),
+      device_id: Number(formData.device_id),
+      sensor_type_list_id: Number(formData.sensor_type_list_id),
+      trigger_type_id: Number(formData.trigger_type_id),
+      sound_status: formData.sound_status ? 1 : 0,
+      blink_status: formData.blink_status ? 1 : 0,
+      status: formData.status ? 1 : 0,
+      unique_id: formData.unique_id || undefined,
+      timestamp: formData.timestamp,
+      // UPS specific fields mapping
+      model_id: isUpsSelected && formData.model_id ? Number(formData.model_id) : null,
+      register_address: isUpsSelected ? (formData.register_address || null) : null,
+      multiplication_factor: isUpsSelected && formData.multiplication_factor ? parseFloat(formData.multiplication_factor) : null,
+      unit: isUpsSelected ? (formData.unit || null) : null,
+      ip_address: isUpsSelected ? (formData.ip_address || null) : null,
+    };
 
+    try {
       if (isEdit) {
         await updateSensorList(id, payload);
       } else {
@@ -841,6 +975,43 @@ const SensorForm = () => {
                 )}
               </div>
 
+              {isUpsSelected && (
+                <>
+                  <div className="form-group">
+                    <label htmlFor="model_id">Ups Model</label>
+                    <select
+                      id="model_id"
+                      className="form-select"
+                      name="model_id"
+                      value={formData.model_id}
+                      onChange={handleChange}
+                      disabled={formData.device_id !== ''}
+                    >
+                      <option value="">Select Ups Model</option>
+                      {upsModels.map((model) => (
+                        <option key={model.id} value={model.id}>
+                          {model.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="ip_address">IP Address</label>
+                    <input
+                      type="text"
+                      id="ip_address"
+                      className="form-control"
+                      name="ip_address"
+                      value={formData.ip_address}
+                      onChange={handleChange}
+                      placeholder="IP Address"
+                      disabled={formData.device_id !== ''}
+                    />
+                  </div>
+                </>
+              )}
+
               {/* <div className="form-group">
                             <label htmlFor="unique_id">Unique ID (Read-only)</label>
                             <input
@@ -904,6 +1075,97 @@ const SensorForm = () => {
                   required
                 />
               </div>
+
+              {isUpsSelected && (
+                <>
+                  <div className="form-group">
+                    <label htmlFor="register_address">Register Address</label>
+                    <CreatableSelect
+                      id="register_address"
+                      isClearable
+                      isSearchable
+                      placeholder="Type or search Register Address..."
+                      options={registerAddresses.map((addr) => ({
+                        value: addr.name,
+                        label: addr.parameter_name ? `${addr.name} (${addr.parameter_name})` : addr.name,
+                      }))}
+                      value={formData.register_address ? { value: formData.register_address, label: formData.register_address } : null}
+                      onChange={(newValue) => {
+                        const addrName = newValue ? newValue.value : '';
+                        const selectedAddr = allRegisterAddresses.find(addr => String(addr.name) === String(addrName) || String(addr.id) === String(addrName));
+                        
+                        setFormData(prev => ({
+                          ...prev,
+                          register_address: addrName,
+                          multiplication_factor: selectedAddr ? String(selectedAddr.multiplication_factor) : prev.multiplication_factor,
+                          unit: selectedAddr ? selectedAddr.unit : prev.unit,
+                        }));
+                      }}
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          width: '100%',
+                          height: '46px',
+                          minHeight: '46px',
+                          borderRadius: '0.375rem',
+                          borderColor: '#d1d5db',
+                          boxShadow: 'none',
+                          fontSize: '1rem',
+                          backgroundColor: '#fff',
+                          '&:hover': {
+                            borderColor: '#9ca3af',
+                          },
+                        }),
+                        valueContainer: (provided) => ({
+                          ...provided,
+                          paddingLeft: '12px',
+                          paddingRight: '12px',
+                        }),
+                        placeholder: (provided) => ({
+                          ...provided,
+                          color: '#9ca3af',
+                        }),
+                        menu: (provided) => ({
+                          ...provided,
+                          zIndex: 9999,
+                        }),
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="multiplication_factor">Multiplication Factor</label>
+                    <input
+                      type="text"
+                      id="multiplication_factor"
+                      className="form-control"
+                      name="multiplication_factor"
+                      value={formData.multiplication_factor}
+                      onChange={handleChange}
+                      placeholder="Multiplication Factor"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="unit">Unit</label>
+                    <select
+                      id="unit"
+                      className="form-select"
+                      name="unit"
+                      value={formData.unit}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select Unit</option>
+                      <option value="V">V</option>
+                      <option value="A">A</option>
+                      <option value="kW">kW</option>
+                      <option value="%">%</option>
+                      <option value="°C">°C</option>
+                      <option value="Hz">Hz</option>
+                    </select>
+                  </div>
+                </>
+              )}
 
               {/* Checkboxes grouped into one field area */}
               <div className="checkbox-field-group">

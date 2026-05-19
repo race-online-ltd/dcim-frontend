@@ -44,3 +44,15 @@ export const deleteModelWiseAddressMapping = async (id) => {
         throw error.response?.data || error;
     }
 };
+
+export const fetchAddressesByModel = async (modelId, excludeSensorId = null) => {
+    try {
+        const url = excludeSensorId 
+            ? `/sensor-lists/by-model/${modelId}?exclude_sensor_id=${excludeSensorId}`
+            : `/sensor-lists/by-model/${modelId}`;
+        const response = await apiClient.get(url);
+        return response.data.data;
+    } catch (error) {
+        throw error.response?.data || error;
+    }
+};

@@ -265,6 +265,7 @@ import "react-confirm-alert/src/react-confirm-alert.css";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { Edit, Trash2, Plus, Download } from 'lucide-react';
+import { fetchUpsModels } from "../../api/settings/upsModelApi";
 
 // NEW COMPONENTS IMPORT
 import Button from "../../components/ui/Button"; // Standard Button component
@@ -348,13 +349,23 @@ const SensorList = () => {
     const canExportSensor = permissions.includes("sensor-export"); // Assuming an export permission
 
     const [sensors, setSensors] = useState([]); // Renamed from allSensors for clarity with DataTable
+    const [upsModels, setUpsModels] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     // --- Data Loading Logic ---
     useEffect(() => {
-        loadAllSensors();
+        const initData = async () => {
+            try {
+                const models = await fetchUpsModels();
+                setUpsModels(models);
+            } catch (err) {
+                console.error("Failed to load UPS models:", err);
+            }
+            loadAllSensors();
+        };
+        initData();
     }, []);
 
     const loadAllSensors = async () => {
@@ -406,17 +417,27 @@ const SensorList = () => {
 
     // --- Export Functionality (Identical Logic) ---
     const handleExport = () => {
-        const dataToExport = sensors.map((sensor, index) => ({
-            No: index + 1,
-            ID: sensor.id,
-            "Data Center": sensor.data_center?.name || "N/A",
-            Device: sensor.device?.name || "N/A",
-            "Sensor Type": sensor.sensor_type?.name || "N/A",
-            "Sensor Name": sensor.sensor_name || "N/A",
-            Location: sensor.location,
-            "Unique ID": sensor.unique_id,
-            Status: sensor.status ? "Active" : "Inactive",
-        }));
+        const dataToExport = sensors.map((sensor, index) => {
+            const isUps = sensor.sensor_type?.name?.toLowerCase() === 'ups';
+            const modelObj = upsModels.find(m => String(m.id) === String(sensor.model_id));
+            const modelName = modelObj ? modelObj.name : (sensor.model?.name || sensor.model_id || "--");
+
+            return {
+                No: index + 1,
+                ID: sensor.id,
+                "Data Center": sensor.data_center?.name || "N/A",
+                Device: sensor.device?.name || "N/A",
+                "Sensor Type": sensor.sensor_type?.name || "N/A",
+                "Sensor Name": sensor.sensor_name || "N/A",
+                Location: sensor.location,
+                "Unique ID": sensor.unique_id,
+                "Ups Model": isUps ? modelName : "--",
+                "Register Address": isUps ? (sensor.register_address || "--") : "--",
+                "Multiplication Factor": isUps ? (sensor.multiplication_factor !== null && sensor.multiplication_factor !== undefined ? sensor.multiplication_factor : "--") : "--",
+                Unit: isUps ? (sensor.unit || "--") : "--",
+                Status: sensor.status ? "Active" : "Inactive",
+            };
+        });
 
         const ws = XLSX.utils.json_to_sheet(dataToExport);
         const wb = XLSX.utils.book_new();
@@ -457,6 +478,41 @@ const SensorList = () => {
         { key: "sensor_name", header: "Sensor Name" },
         { key: "location", header: "Location" },
         { key: "unique_id", header: "Unique ID" },
+        { 
+            key: "model_id", 
+            header: "Ups Model",
+            render: (model_id, row) => {
+                const isUps = row.sensor_type?.name?.toLowerCase() === 'ups';
+                if (!isUps) return "--";
+                const modelObj = upsModels.find(m => String(m.id) === String(model_id));
+                return modelObj ? modelObj.name : (row.model?.name || model_id || "--");
+            },
+        },
+        { 
+            key: "register_address", 
+            header: "Register Address",
+            render: (register_address, row) => {
+                const isUps = row.sensor_type?.name?.toLowerCase() === 'ups';
+                return isUps ? (register_address || "--") : "--";
+            },
+        },
+        { 
+            key: "multiplication_factor", 
+            header: "Multiplication Factor",
+            render: (multiplication_factor, row) => {
+                const isUps = row.sensor_type?.name?.toLowerCase() === 'ups';
+                if (!isUps) return "--";
+                return multiplication_factor !== null && multiplication_factor !== undefined && multiplication_factor !== "" ? multiplication_factor : "--";
+            },
+        },
+        { 
+            key: "unit", 
+            header: "Unit",
+            render: (unit, row) => {
+                const isUps = row.sensor_type?.name?.toLowerCase() === 'ups';
+                return isUps ? (unit || "--") : "--";
+            },
+        },
         {
             key: "status",
             header: "Status",
