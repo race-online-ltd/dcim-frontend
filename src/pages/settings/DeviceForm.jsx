@@ -172,6 +172,7 @@ import Button from '../../components/ui/Button';
 
 import { fetchDevice, createDevice, updateDevice } from '../../api/deviceApi';
 import { fetchDataCenters } from '../../api/settings/dataCenterApi';
+import { fetchUpsModels } from '../../api/settings/upsModelApi';
 
 // ================================================================
 // 1. CSS FOR LAYOUT AND UI/UX MATCH
@@ -265,8 +266,8 @@ const formLayoutStyles = `
 
 /* Header Styling */
 .form-header {
-    margin-bottom: 40px;
-    padding-bottom: 24px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
     border-bottom: 1px solid #e5e7eb;
     display: flex;
     align-items: flex-start;
@@ -365,6 +366,8 @@ const DeviceForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [dataCenters, setDataCenters] = useState([]);
+  const [upsModels, setUpsModels] = useState([]);
+  const [selectedType, setSelectedType] = useState(1); // 1 = Device, 2 = Ups, 3 = Generator
   const [device, setDevice] = useState({
     name: '',
     data_center_id: '',
@@ -372,6 +375,9 @@ const DeviceForm = () => {
     secret_key: '', // Initialized as empty string for input compatibility
     control_topic: '', // Initialized as empty string for input compatibility
     status: 1,
+    ip_address: '',
+    slave_id: '',
+    model_id: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -384,8 +390,17 @@ const DeviceForm = () => {
         const centers = await fetchDataCenters();
         setDataCenters(centers);
 
+        try {
+          const models = await fetchUpsModels();
+          setUpsModels(models || []);
+        } catch (modelErr) {
+          console.error("Failed to load UPS models:", modelErr);
+        }
+
         if (isEditMode) {
           const existingDevice = await fetchDevice(id);
+          const devType = Number(existingDevice.type || existingDevice.device_type || 1);
+          setSelectedType(devType);
           setDevice({
             ...existingDevice,
             // Ensure optional fields are handled as strings for input value
@@ -394,6 +409,9 @@ const DeviceForm = () => {
             // Ensure data_center_id is treated as a string/number if API requires
             data_center_id: String(existingDevice.data_center_id),
             status: String(existingDevice.status), // Convert status to string for select value
+            ip_address: existingDevice.ip_address || existingDevice.ip || '',
+            slave_id: existingDevice.slave_id || existingDevice.slave || '',
+            model_id: existingDevice.model_id || existingDevice.ups_model_id || existingDevice.ups_model || '',
           });
         }
       } catch (err) {
@@ -417,6 +435,13 @@ const DeviceForm = () => {
       return;
     }
 
+    if (selectedType === 2) {
+      if (!device.ip_address || !device.slave_id || !device.model_id) {
+        setError('IP Address, Slave ID, and UPS Model are required when UPS is selected.');
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
 
@@ -426,10 +451,38 @@ const DeviceForm = () => {
         ...device,
         status: Number(device.status),
         data_center_id: Number(device.data_center_id),
-        // Send null for empty optional fields if API expects it
-        secret_key: device.secret_key || null,
-        control_topic: device.control_topic || null,
+        // Pass selected type to both 'type' and 'device_type'
+        type: selectedType,
+        device_type: selectedType,
       };
+
+      if (selectedType === 2) {
+        // Send extra payload fields for UPS
+        dataToSend.ip_address = device.ip_address;
+        dataToSend.ip = device.ip_address;
+        dataToSend.slave_id = Number(device.slave_id);
+        dataToSend.slave = Number(device.slave_id);
+        dataToSend.model_id = Number(device.model_id);
+        dataToSend.ups_model_id = Number(device.model_id);
+        dataToSend.ups_model = Number(device.model_id);
+        
+        // Hide/omit/null control topic and secret key
+        dataToSend.secret_key = null;
+        dataToSend.control_topic = null;
+      } else {
+        // Standard fields
+        dataToSend.secret_key = device.secret_key || null;
+        dataToSend.control_topic = device.control_topic || null;
+        
+        // Omit/null UPS specific fields
+        dataToSend.ip_address = null;
+        dataToSend.ip = null;
+        dataToSend.slave_id = null;
+        dataToSend.slave = null;
+        dataToSend.model_id = null;
+        dataToSend.ups_model_id = null;
+        dataToSend.ups_model = null;
+      }
 
       if (isEditMode) {
         await updateDevice(id, dataToSend);
@@ -486,6 +539,35 @@ const DeviceForm = () => {
                     FORM (Grid Layout)
                     ================================================================ */}
         <form onSubmit={handleSubmit}>
+          <div className="card-header d-flex justify-content-start align-items-center mb-4" style={{ padding: '0.25rem 1rem', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div className="dashboard-tabs">
+              <button
+                type="button"
+                className={`tab-item ${selectedType === 1 ? 'tab-active' : ''}`}
+                onClick={() => setSelectedType(1)}
+              >
+                <span className="tab-text">Device</span>
+                <span className="tab-indicator" aria-hidden />
+              </button>
+              <button
+                type="button"
+                className={`tab-item ${selectedType === 2 ? 'tab-active' : ''}`}
+                onClick={() => setSelectedType(2)}
+              >
+                <span className="tab-text">Ups</span>
+                <span className="tab-indicator" aria-hidden />
+              </button>
+              <button
+                type="button"
+                className={`tab-item ${selectedType === 3 ? 'tab-active' : ''}`}
+                onClick={() => setSelectedType(3)}
+              >
+                <span className="tab-text">Generator</span>
+                <span className="tab-indicator" aria-hidden />
+              </button>
+            </div>
+          </div>
+
           <div className="form-grid">
             {/* Row 1: Name and Data Center */}
             <div className="form-group">
@@ -549,33 +631,89 @@ const DeviceForm = () => {
               </select>
             </div>
 
-            {/* Row 3: Received Topic and Control Topic (Optional fields) */}
-            <div className="form-group">
-              <label htmlFor="secret_key">Received Topic (Optional)</label>
-              <input
-                type="text"
-                id="secret_key"
-                name="secret_key"
-                value={device.secret_key}
-                onChange={handleChange}
-                className="form-control"
-                placeholder="e.g., devices/temp_sensor/data"
-              />
-            </div>
+            {/* Row 3: Received Topic and Control Topic (Optional fields - Hidden when UPS is selected) */}
+            {selectedType !== 2 && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="secret_key">Received Topic (Optional)</label>
+                  <input
+                    type="text"
+                    id="secret_key"
+                    name="secret_key"
+                    value={device.secret_key}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="e.g., devices/temp_sensor/data"
+                  />
+                </div>
 
-            <div className="form-group">
-              <label htmlFor="control_topic">Control Topic</label>
-              <input
-                type="text"
-                id="control_topic"
-                name="control_topic"
-                value={device.control_topic}
-                onChange={handleChange}
-                className="form-control"
-                required
-                placeholder="e.g., devices/temp_sensor/control"
-              />
-            </div>
+                <div className="form-group">
+                  <label htmlFor="control_topic">Control Topic</label>
+                  <input
+                    type="text"
+                    id="control_topic"
+                    name="control_topic"
+                    value={device.control_topic}
+                    onChange={handleChange}
+                    className="form-control"
+                    required
+                    placeholder="e.g., devices/temp_sensor/control"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Row 4: UPS specific fields (Only shown when UPS is selected) */}
+            {selectedType === 2 && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="ip_address">Ip Address</label>
+                  <input
+                    type="text"
+                    id="ip_address"
+                    name="ip_address"
+                    value={device.ip_address}
+                    onChange={handleChange}
+                    className="form-control"
+                    required
+                    placeholder="e.g., 192.168.1.100"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="slave_id">Slave Id</label>
+                  <input
+                    type="number"
+                    id="slave_id"
+                    name="slave_id"
+                    value={device.slave_id}
+                    onChange={handleChange}
+                    className="form-control"
+                    required
+                    placeholder="e.g., 1"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="model_id">Ups Model</label>
+                  <select
+                    id="model_id"
+                    name="model_id"
+                    value={device.model_id}
+                    onChange={handleChange}
+                    className="form-control"
+                    required
+                  >
+                    <option value="">Select Ups Model</option>
+                    {upsModels.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
           </div>
 
           {/* ================================================================

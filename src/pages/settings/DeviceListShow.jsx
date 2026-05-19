@@ -419,8 +419,11 @@ const DeviceListShow = () => {
             Name: device.name,
             'Data Center': device.data_center?.name || 'N/A',
             Location: device.location,
-            'Secret Key': device.secret_key || 'Not set',
-            'Control Topic': device.control_topic || 'Not set',
+            'Secret Key': device.secret_key || '--',
+            'Control Topic': device.control_topic || '--',
+            'IP Address': device.ip_address || device.ip || '--',
+            'Slave ID': device.slave_id || device.slave || '--',
+            'UPS Model': device.model?.name || device.model_id || device.ups_model?.name || device.ups_model_id || '--',
             Status: device.status === 1 ? 'Active' : 'Inactive',
         }));
 
@@ -438,6 +441,7 @@ const DeviceListShow = () => {
     };
     // --- End Export Functionality ---
 
+
     // --- DATATABLE COLUMN CONFIGURATION (useMemo for stability) ---
     const columns = useMemo(() => [
         // DataTable handles the "No" column via showId={true}
@@ -452,12 +456,27 @@ const DeviceListShow = () => {
         { 
             key: "secret_key", 
             header: "Secret Key",
-            render: (value) => value || "Not set",
+            render: (value) => value || "--",
         },
         { 
             key: "control_topic", 
             header: "Control Topic",
-            render: (value) => value || "Not set",
+            render: (value) => value || "--",
+        },
+        { 
+            key: "ip_address", 
+            header: "IP Address",
+            render: (value, row) => row.ip_address || row.ip || "--",
+        },
+        { 
+            key: "slave_id", 
+            header: "Slave ID",
+            render: (value, row) => row.slave_id || row.slave || "--",
+        },
+        { 
+            key: "ups_model", 
+            header: "UPS Model",
+            render: (value, row) => row.model?.name || row.model_id || row.ups_model?.name || row.ups_model_id || "--",
         },
         {
             key: "status",
