@@ -84,22 +84,6 @@ export const sidebarMenu = [
             title: 'Ups',
             path: '/admin/settings/ups',
           },
-          {
-            title: 'Ups Model',
-            path: '/admin/settings/ups-model',
-          },
-          {
-            title: 'Register Address',
-            path: '/admin/settings/register-address',
-          },
-          {
-            title: 'Ups Model Config',
-            path: '/admin/settings/ups-model-config',
-          },
-          {
-            title: 'Model Wise Address Mapping',
-            path: '/admin/settings/model-wise-address-mapping',
-          },
         ],
       },
       {

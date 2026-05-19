@@ -7,6 +7,7 @@ import { fetchUpsList, deleteUps } from "../../api/settings/upsApi";
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
+import UpsTabs from '../../components/UpsTabs';
 
 const iconButtonStyles = `
     .data-table-btn-icon {
@@ -138,6 +139,7 @@ const Ups = () => {
       <style>{pageLayoutStyles}</style>
 
       <div className="ups-list-container">
+        <UpsTabs />
         <header className="ups-header">
             <h2 className="text-xl font-bold">Ups</h2>
             <div className="d-flex gap-2">

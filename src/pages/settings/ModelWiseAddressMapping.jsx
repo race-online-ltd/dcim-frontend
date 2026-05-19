@@ -8,6 +8,7 @@ import { exportToCSV } from '../../utils/exportUtils';
 import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import UpsTabs from '../../components/UpsTabs';
 
 const iconButtonStyles = `
     .data-table-btn-icon {
@@ -142,6 +143,7 @@ const ModelWiseAddressMapping = () => {
       <style>{pageLayoutStyles}</style>
 
       <div className="mapping-list-container">
+        <UpsTabs />
         <header className="mapping-header">
             <h2 className="text-xl font-bold">Model Wise Address Mapping</h2>
             <div className="d-flex gap-2">

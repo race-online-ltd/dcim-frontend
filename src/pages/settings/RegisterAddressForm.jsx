@@ -182,6 +182,9 @@ const RegisterAddressForm = () => {
   const navigate = useNavigate();
   const [registerAddress, setRegisterAddress] = useState({
     name: '',
+    parameter_name: '',
+    multiplication_factor: '',
+    unit: '',
   });
   const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -195,6 +198,9 @@ const RegisterAddressForm = () => {
           const data = await fetchRegisterAddress(id);
           setRegisterAddress({
             name: data.name || '',
+            parameter_name: data.parameter_name || '',
+            multiplication_factor: data.multiplication_factor || '',
+            unit: data.unit || '',
           });
         } catch (err) {
           console.error('Failed to load Register Address data:', err);
@@ -276,6 +282,53 @@ const RegisterAddressForm = () => {
                 className="form-control"
                 required
               />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="parameter_name">Parameter Name</label>
+              <input
+                type="text"
+                id="parameter_name"
+                name="parameter_name"
+                value={registerAddress.parameter_name}
+                onChange={handleChange}
+                className="form-control"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="multiplication_factor">Multiplication Factor</label>
+              <input
+                type="number"
+                step="any"
+                id="multiplication_factor"
+                name="multiplication_factor"
+                value={registerAddress.multiplication_factor}
+                onChange={handleChange}
+                className="form-control"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="unit">Unit</label>
+              <select
+                id="unit"
+                name="unit"
+                value={registerAddress.unit}
+                onChange={handleChange}
+                className="form-control"
+                required
+              >
+                <option value="">Select Unit</option>
+                <option value="V">V</option>
+                <option value="A">A</option>
+                <option value="kW">kW</option>
+                <option value="%">%</option>
+                <option value="°C">°C</option>
+                <option value="Hz">Hz</option>
+              </select>
             </div>
           </div>
 

@@ -7,6 +7,8 @@ import { fetchRegisterAddresses, deleteRegisterAddress } from "../../api/setting
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
+import UpsTabs from '../../components/UpsTabs';
+import { exportToCSV } from '../../utils/exportUtils';
 
 const iconButtonStyles = `
     .data-table-btn-icon {
@@ -99,12 +101,22 @@ const RegisterAddress = () => {
   }, [deleteRegisterAddress, successMessage, errorMessage]);
 
   const handleExport = () => {
-    console.log('Export Register Address data');
+    const exportData = registerAddressData.map(item => ({
+      ID: item.id,
+      Name: item.name,
+      'Parameter Name': item.parameter_name,
+      'Multiplication Factor': item.multiplication_factor,
+      Unit: item.unit,
+    }));
+    exportToCSV(exportData, 'register_addresses.csv');
   };
 
   const columns = useMemo(() => [
     { key: "id", header: "ID" },
     { key: "name", header: "Name" },
+    { key: "parameter_name", header: "Parameter Name" },
+    { key: "multiplication_factor", header: "Multiplication Factor" },
+    { key: "unit", header: "Unit" },
     {
       key: "actions",
       header: "Actions",
@@ -136,6 +148,7 @@ const RegisterAddress = () => {
       <style>{pageLayoutStyles}</style>
 
       <div className="register-address-list-container">
+        <UpsTabs />
         <header className="register-address-header">
             <h2 className="text-xl font-bold">Register Address</h2>
             <div className="d-flex gap-2">

@@ -8,6 +8,7 @@ import { exportToCSV } from '../../utils/exportUtils';
 import { successMessage, errorMessage } from '../../api/api-config/apiResponseMessage';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import UpsTabs from '../../components/UpsTabs';
 
 const iconButtonStyles = `
     .data-table-btn-icon {
@@ -144,6 +145,7 @@ const UpsModelConfig = () => {
       <style>{pageLayoutStyles}</style>
 
       <div className="ups-model-config-container">
+        <UpsTabs />
         <header className="ups-model-config-header">
             <h2 className="text-xl font-bold">Ups Model Config</h2>
             <div className="d-flex gap-2">
