@@ -19,13 +19,27 @@ const subscribeToChannel = (callback) => {
     callback(incomingData);
   });
 };
+// UPS EVENT
+const subscribeToUpsEvent = (callback) => {
+  if (!channel) connectAbly();
+
+  channel.subscribe("ups_event", (message) => {
+    const incomingUpsData = message.data;
+
+    callback(incomingUpsData);
+  });
+};
 
 const unsubscribeFromChannel = () => {
-  if (channel) channel.unsubscribe();
+  if (channel) {
+    channel.unsubscribe("event_name");
+    channel.unsubscribe("ups_event");
+  }
 };
 
 export default {
   connectAbly,
   subscribeToChannel,
+  subscribeToUpsEvent,
   unsubscribeFromChannel,
 };

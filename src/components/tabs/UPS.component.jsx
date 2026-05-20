@@ -1,6 +1,7 @@
-import React, { memo, useMemo } from "react";
+import React, { memo, useMemo,useEffect } from "react";
 import UpsTable from "../table/UpsTable";
 import "../table/ups-table.css";
+import ablyService from "../../services/ablyService";
 
 const DEFAULT_UPS_DATA = {
   id: "UPS-01",
@@ -241,6 +242,16 @@ const normalizeUpsList = (data) => {
 };
 
 const UPS = ({ data = {} }) => {
+
+  useEffect(() => {
+  ablyService.subscribeToUpsEvent((data) => {
+    console.log('UPS Data:', data);
+  });
+
+  return () => {
+    ablyService.unsubscribeFromChannel();
+  };
+}, []);
   const upsList = useMemo(() => normalizeUpsList(data), [data]);
 
   return (
