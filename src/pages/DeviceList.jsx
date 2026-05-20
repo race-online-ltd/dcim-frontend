@@ -9,4 +9,5 @@ const DeviceList = ({ collapsed }) => {
   );
 };
 
+
 export default DeviceList;
