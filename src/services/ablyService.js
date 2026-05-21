@@ -15,8 +15,10 @@ const connectAbly = () => {
 const subscribeToChannel = (callback) => {
   if (!channel) connectAbly();
   channel.subscribe("event_name", (message) => {
-    const incomingData = message.data?.comment;
-    callback(incomingData);
+    const incomingData = message?.data?.comment ?? message?.data ?? null;
+    if (incomingData) {
+      callback(incomingData);
+    }
   });
 };
 

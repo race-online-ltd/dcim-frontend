@@ -202,8 +202,8 @@ const Dashboard = () => {
       }
       const latest = filteredDataCenter[filteredDataCenter.length - 1];
 
-      // IMPORTANT: Skip update if sensor data is empty or null
-      if (!latest.sensor_types?.length || latest.sensor_types.some((st) => !st.sensors?.length)) {
+      // Skip only when all sensor types are empty; do not block partially valid packets.
+      if (!latest.sensor_types?.length || !latest.sensor_types.some((st) => st.sensors?.length > 0)) {
         console.warn('⚠️ Empty sensor data received - skipping update to preserve last value');
         return;
       }
