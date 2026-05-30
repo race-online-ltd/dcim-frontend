@@ -40,7 +40,8 @@ import SvgUploader from './pages/settings/SvgUploader';
 import SvgPreview from './pages/settings/SvgPreview';
 import { useDispatch } from 'react-redux';
 import { addData } from './redux/features/dashboard/mqttSlice';
-import ablyService from './services/ablyService';
+// import ablyService from './services/ablyService';
+import reverbService from './services/reverbService';
 import AlarmDetails from './pages/AlarmDetails';
 import { DOControlPage } from './pages/settings/DOControl.page';
 import { DOControlConfigurationComponent } from './components/DOControlConfiguration.component';
@@ -58,104 +59,132 @@ import ModelWiseAddressMapping from './pages/settings/ModelWiseAddressMapping';
 import ModelWiseAddressMappingForm from './pages/settings/ModelWiseAddressMappingForm';
 import UpsModelConfigForm from './pages/settings/UpsModelConfigForm';
 
-
 const App = () => {
   const dispatch = useDispatch();
 
+  // useEffect(() => {
+  //   ablyService.connectAbly();
+  //   ablyService.subscribeToChannel((data) => {
+  //     dispatch(addData(data));
+  //   });
+
+  //   return () => {
+  //     ablyService.unsubscribeFromChannel();
+  //   };
+  // }, [dispatch]);
+
   useEffect(() => {
-    ablyService.connectAbly();
-    ablyService.subscribeToChannel((data) => {
+    reverbService.connectReverb();
+
+    reverbService.subscribeToChannel((data) => {
+      // console.log('Received data from Reverb:', data);
       dispatch(addData(data));
     });
 
+    reverbService.subscribeToUpsEvent((data) => {
+      console.log('UPS:', data);
+    });
+
     return () => {
-      ablyService.unsubscribeFromChannel();
+      reverbService.unsubscribeFromChannel();
     };
-  }, [dispatch]);
+  }, []);
+
   return (
-    
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<PublicRoutes />}>
-            <Route path="/" element={<Login />} />
-            <Route path="*" element={<Error />} />
-          </Route>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<PublicRoutes />}>
+          <Route path="/" element={<Login />} />
+          <Route path="*" element={<Error />} />
+        </Route>
 
-          <Route path="/admin/*" element={<PermissionProvider><PrivateRoutes /></PermissionProvider>}>
-            <Route path="home" element={<Home />} />
-            <Route path="alarm-details/:id" element={<AlarmDetails />} />
-            <Route path="device-details/:id" element={<DeviceAlarmDetails />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="reports/device-list" element={<DeviceList />} />
-            <Route path="reports/log" element={<Log />} />
-            <Route path="reports/settings" element={<Settings />} />
-            <Route path="servers" element={<Servers />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="settings/userregister" element={<RegistrationForm />} />
-            <Route path="settings/division" element={<Divisions />} />
-            <Route path="settings/add-division" element={<AddDivision />} />
-            <Route path="settings/datacenter" element={<AddDataCenter />} />
-            <Route path="settings/datacenter/:id" element={<AddDataCenter />} />
-            <Route path="settings/datacenter-show" element={<DataCenterList />} />
-            <Route path="users" element={<Users />} />
+        <Route
+          path="/admin/*"
+          element={
+            <PermissionProvider>
+              <PrivateRoutes />
+            </PermissionProvider>
+          }
+        >
+          <Route path="home" element={<Home />} />
+          <Route path="alarm-details/:id" element={<AlarmDetails />} />
+          <Route path="device-details/:id" element={<DeviceAlarmDetails />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="reports/device-list" element={<DeviceList />} />
+          <Route path="reports/log" element={<Log />} />
+          <Route path="reports/settings" element={<Settings />} />
+          <Route path="servers" element={<Servers />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="settings/userregister" element={<RegistrationForm />} />
+          <Route path="settings/division" element={<Divisions />} />
+          <Route path="settings/add-division" element={<AddDivision />} />
+          <Route path="settings/datacenter" element={<AddDataCenter />} />
+          <Route path="settings/datacenter/:id" element={<AddDataCenter />} />
+          <Route path="settings/datacenter-show" element={<DataCenterList />} />
+          <Route path="users" element={<Users />} />
 
-            <Route path="settings/partner-list" element={<PartnerList />} />
-            <Route path="settings/add-partner" element={<PartnerList />} />
-            <Route path="settings/edit-partner/:id" element={<PartnerList />} />
+          <Route path="settings/partner-list" element={<PartnerList />} />
+          <Route path="settings/add-partner" element={<PartnerList />} />
+          <Route path="settings/edit-partner/:id" element={<PartnerList />} />
 
-            <Route path="settings/dc-user-mapping" element={<DcOwnerMapping />} />
-            <Route path="settings/dc-partner-mapping" element={<DcPartnerMapping />} />
+          <Route path="settings/dc-user-mapping" element={<DcOwnerMapping />} />
+          <Route path="settings/dc-partner-mapping" element={<DcPartnerMapping />} />
 
-            <Route path="settings/devices-list" element={<DeviceListShow />} />
-            <Route path="settings/devices-create" element={<DeviceForm />} />
-            <Route path="settings/devices-edit/:id" element={<DeviceForm />} />
+          <Route path="settings/devices-list" element={<DeviceListShow />} />
+          <Route path="settings/devices-create" element={<DeviceForm />} />
+          <Route path="settings/devices-edit/:id" element={<DeviceForm />} />
 
-            <Route path="settings/sensor-lists" element={<SensorList />} />
-            <Route path="settings/sensor-lists/create" element={<SensorForm />} />
-            <Route path="settings/sensor-lists/:id" element={<SensorDetail />} />
-            <Route path="settings/sensor-edit/:id" element={<SensorForm />} />
+          <Route path="settings/sensor-lists" element={<SensorList />} />
+          <Route path="settings/sensor-lists/create" element={<SensorForm />} />
+          <Route path="settings/sensor-lists/:id" element={<SensorDetail />} />
+          <Route path="settings/sensor-edit/:id" element={<SensorForm />} />
 
-            <Route path="settings/threshold-types" element={<ThresholdTypes />} />
-            <Route path="settings/threshold-values" element={<ThresholdValues />} />
+          <Route path="settings/threshold-types" element={<ThresholdTypes />} />
+          <Route path="settings/threshold-values" element={<ThresholdValues />} />
 
-            <Route path="settings/state-configs" element={<StateConfigs />} />
+          <Route path="settings/state-configs" element={<StateConfigs />} />
 
-            <Route path="settings/dashboart-tab-mappings" element={<DashboardMapping />} />
+          <Route path="settings/dashboart-tab-mappings" element={<DashboardMapping />} />
 
-            <Route path="settings/svguploader" element={<SvgUploader />} />
-            <Route path="settings/svgpreviewer" element={<SvgPreview />} />
-            <Route path="reports/alarm" element={<AlarmReport />} />
-            <Route path="reports/sensor-log" element={<SensorLogReport />} />
+          <Route path="settings/svguploader" element={<SvgUploader />} />
+          <Route path="settings/svgpreviewer" element={<SvgPreview />} />
+          <Route path="reports/alarm" element={<AlarmReport />} />
+          <Route path="reports/sensor-log" element={<SensorLogReport />} />
 
-            <Route path="settings/ups" element={<Ups />} />
-            <Route path="settings/ups-create" element={<UpsForm />} />
-            <Route path="settings/ups-edit/:id" element={<UpsForm />} />
-            <Route path="settings/ups-model" element={<UpsModel />} />
-            <Route path="settings/ups-model-create" element={<UpsModelForm />} />
-            <Route path="settings/ups-model-edit/:id" element={<UpsModelForm />} />
+          <Route path="settings/ups" element={<Ups />} />
+          <Route path="settings/ups-create" element={<UpsForm />} />
+          <Route path="settings/ups-edit/:id" element={<UpsForm />} />
+          <Route path="settings/ups-model" element={<UpsModel />} />
+          <Route path="settings/ups-model-create" element={<UpsModelForm />} />
+          <Route path="settings/ups-model-edit/:id" element={<UpsModelForm />} />
 
-            <Route path="settings/register-address" element={<RegisterAddress />} />
-            <Route path="settings/register-address-create" element={<RegisterAddressForm />} />
-            <Route path="settings/register-address-edit/:id" element={<RegisterAddressForm />} />
-            <Route path="settings/ups-model-config" element={<UpsModelConfig />} />
-            <Route path="settings/ups-model-config-create" element={<UpsModelConfigForm />} />
-            <Route path="settings/ups-model-config-edit/:id" element={<UpsModelConfigForm />} />
-            <Route path="settings/model-wise-address-mapping" element={<ModelWiseAddressMapping />} />
-            <Route path="settings/model-wise-address-mapping-create" element={<ModelWiseAddressMappingForm />} />
-            <Route path="settings/model-wise-address-mapping-edit/:id" element={<ModelWiseAddressMappingForm />} />
+          <Route path="settings/register-address" element={<RegisterAddress />} />
+          <Route path="settings/register-address-create" element={<RegisterAddressForm />} />
+          <Route path="settings/register-address-edit/:id" element={<RegisterAddressForm />} />
+          <Route path="settings/ups-model-config" element={<UpsModelConfig />} />
+          <Route path="settings/ups-model-config-create" element={<UpsModelConfigForm />} />
+          <Route path="settings/ups-model-config-edit/:id" element={<UpsModelConfigForm />} />
+          <Route path="settings/model-wise-address-mapping" element={<ModelWiseAddressMapping />} />
+          <Route
+            path="settings/model-wise-address-mapping-create"
+            element={<ModelWiseAddressMappingForm />}
+          />
+          <Route
+            path="settings/model-wise-address-mapping-edit/:id"
+            element={<ModelWiseAddressMappingForm />}
+          />
 
-            <Route path="roles" element={<RoleList />} />
-            <Route path="roles/create" element={<CreateRole />} />
-            <Route path="roles/:id" element={<RoleShow />} />
-            <Route path="roles/:id/edit" element={<EditRole />} />
+          <Route path="roles" element={<RoleList />} />
+          <Route path="roles/create" element={<CreateRole />} />
+          <Route path="roles/:id" element={<RoleShow />} />
+          <Route path="roles/:id/edit" element={<EditRole />} />
 
-            <Route path="permissions" element={<UserPermissionsPage />} />
-            <Route path="settings/control-config" element={<DOControlPage />} />
-            <Route path="settings/do-control-form" element={<DOControlConfigurationComponent />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-   
+          <Route path="permissions" element={<UserPermissionsPage />} />
+          <Route path="settings/control-config" element={<DOControlPage />} />
+          <Route path="settings/do-control-form" element={<DOControlConfigurationComponent />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 };
 
